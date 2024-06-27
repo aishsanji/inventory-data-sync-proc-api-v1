@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+	<sub-flow name="send-email-sub-flow" doc:id="a80ccf17-6940-4e44-bafd-72899c3287f4" >
+		<logger level="INFO" doc:name="before sending email" doc:id="45b1a8d0-7b25-4de4-8758-2c59e1267a69" message='#["Before sending email to support team"]'/>
+		<email:send doc:name="email to support team" doc:id="b3c46663-8fbd-4e6e-9076-d551d92fb4c6" config-ref="Email_SMTP" fromAddress="${smtp.username}" subject="#[vars.emailSubject]" >
+			<email:to-addresses >
+				<email:to-address value="${smtp.email.to}" />
+			</email:to-addresses>
+			<email:body contentType="text/plain" >
+				<email:content ><![CDATA[#[vars.emailBody]]]></email:content>
+			</email:body>
+			<email:attachments ><![CDATA[#[{
+  'error' : payload
+}]]]></email:attachments>
+		</email:send>
+		<logger level="INFO" doc:name="after sending email" doc:id="106a5254-4c23-4288-8f26-24a6df75603f" message='#["Before sending email to support team"]'/>
+	</sub-flow>
+	<sub-flow name="list-files-sub-flow" doc:id="96870b26-c5ad-4b3c-8bfd-6ce975a716ce" >
+		<logger level="INFO" doc:name="before list file" doc:id="58b49712-b37b-4408-a763-dfb84d6ed88e" message='#["Before list file from file location"]'/>
+		<file:list doc:name="List" doc:id="02b89ad1-77e3-49d3-ae67-e5a9a0dad279" config-ref="File_Config" directoryPath="${file-config.listFilePath}"/>
+		<set-variable value="#[payload[0].attributes.fileName]" doc:name="originalFileName" doc:id="64042926-d708-49ba-8af4-a083aba9a5e3" variableName="originalFileName"/>
+		<logger level="INFO" doc:name="after list file" doc:id="36254adb-6a7d-481f-87cc-5da2e8382934" message='#["After list file from file location"]'/>
+	</sub-flow>
+	<sub-flow name="read-files-sub-flow" doc:id="101c72cc-e456-4b3f-a7ab-9fe43a4e18f3" >
+		<logger level="INFO" doc:name="before read file" doc:id="7fc492e7-b030-4841-97a8-392758285760" message='#["Before reading the file from location"]'/>
+		<file:read doc:name="Read" doc:id="983003a5-be03-469c-93b2-0de70ccc5c75" config-ref="File_Config" path="#[p('file-config.readFilePath') ++ vars.originalFileName]" outputMimeType="application/csv; streaming=true"/>
+		<logger level="INFO" doc:name="after read file" doc:id="b2bbd992-a1ff-48ea-9cbc-d356dae9a97b" message='#["After reading the file from location"]'/>
+	</sub-flow>
+	<sub-flow name="move-file-sub-flow" doc:id="68b8bbeb-84e5-4482-ad36-b40001828b7b" >
+		<logger level="INFO" doc:name="before move file" doc:id="c2a22b27-36bd-452a-b50e-80c2176025c4" message='#["Before moving the file"]'/>
+		<file:move doc:name="Move" doc:id="b505d79b-b729-4779-bf9c-28128eca7a6c" config-ref="File_Config" sourcePath="#[p('file-config.error.writeFilePath') ++ &quot;*.csv&quot;]" targetPath="#[p('file-config.archiveFilePath') ++ &quot;error&quot;]" createParentDirectories="false"/>
+		<logger level="INFO" doc:name="after move file" doc:id="574fb210-47b1-4ebf-9457-56eedc29022c" message='#["After moving the file"]'/>
+	</sub-flow>
+</mule>

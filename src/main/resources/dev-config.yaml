@@ -1,0 +1,22 @@
+schedular:
+  cron: "0 0 4 ? * * *"
+
+api:
+  name: "inventory-data-sync-proc-v1"
+
+mule:
+  env: "dev"
+  
+file-config:
+  basePath: "D:/batch"
+  error.writeFilePath: "file-error/"
+  listFilePath: "file-input"
+  readFilePath: "file-input/"
+  writeFilePath: "file-output/"
+  archiveFilePath: "file-archive/"
+
+smtp:
+  host: "smtp.gmail.com"
+  port: "587"
+  username: "aishwarya.k.sanji@gmail.com"
+  email.to: "aishwaryamulesofttraining@gmail.com" 

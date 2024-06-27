@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:email="http://www.mulesoft.org/schema/mule/email"
+	xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+	<validation:config name="Payload_Validation_Config" doc:name="Validation Config" doc:id="fd7a31bb-1c92-4f8d-b495-3f546be342be" />
+	<email:smtp-config name="Email_SMTP" doc:name="Email SMTP" doc:id="d52d8cb4-aa84-42c5-a7bb-b9d4e7e9aa2f" >
+		<email:smtp-connection host="${smtp.host}" user="${smtp.username}" password="${secure::smtp.password}" port="${smtp.port}" timeoutUnit="MINUTES" connectionTimeout="1" readTimeout="1" writeTimeout="1">
+			<email:properties >
+				<email:property key="mail.smtp.starttls.enable" value="true" />
+			</email:properties>
+		</email:smtp-connection>
+	</email:smtp-config>
+	<file:config name="File_Config" doc:name="File Config" doc:id="4365722d-3206-4183-98b5-ab247b041bd8" >
+		<file:connection workingDir="${file-config.basePath}" />
+	</file:config>
+	<global-property doc:name="Global Property" doc:id="f81448b7-f867-4170-a2cb-28ff8f6d2831" name="mule.env" value="dev" />
+	<configuration-properties doc:name="Configuration properties" doc:id="904daf0d-5147-4661-a4f4-62841fded885" file="${mule.env}-config.yaml" />
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="ab48a1dc-427c-42a8-beec-2ae49449fad7" file="secure-${mule.env}-config.yaml" key="${secure.key}" />
+	<global-property doc:name="Global Property" doc:id="07ea5d7c-e1fe-4831-97cc-e7812450ce93" name="secure.key" value="Mulesoft@123!Ban" />
+</mule>
