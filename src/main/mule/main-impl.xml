@@ -12,7 +12,7 @@ http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/cu
 	<flow name="main-scheduler-flow" doc:id="e0cc8e8c-59db-4d7a-ad3c-3b7f95f81499" >
 		<scheduler doc:name="runs at 4am everyday" doc:id="6eb7cac3-7e13-4ab2-8e50-ec0d7a1f97cd" >
 			<scheduling-strategy >
-				<fixed-frequency frequency="3" timeUnit="MINUTES" />
+				<cron expression="${schedular.cron}" />
 			</scheduling-strategy>
 		</scheduler>
 		<set-variable value="#[correlationId]" doc:name="correlationId" doc:id="4e13e21e-1ff5-48a3-ad0b-2a7d389eaae1" variableName="correlationId" />
