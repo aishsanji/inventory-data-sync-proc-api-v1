@@ -12,7 +12,7 @@ http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/cu
 	<flow name="main-scheduler-flow" doc:id="e0cc8e8c-59db-4d7a-ad3c-3b7f95f81499" >
 		<scheduler doc:name="runs at 4am everyday" doc:id="6eb7cac3-7e13-4ab2-8e50-ec0d7a1f97cd" >
 			<scheduling-strategy >
-				<cron expression="${schedular.cron}"/>
+				<fixed-frequency frequency="3" timeUnit="MINUTES" />
 			</scheduling-strategy>
 		</scheduler>
 		<set-variable value="#[correlationId]" doc:name="correlationId" doc:id="4e13e21e-1ff5-48a3-ad0b-2a7d389eaae1" variableName="correlationId" />
@@ -94,7 +94,7 @@ payload]]></ee:set-payload>
 								<ee:transform doc:name="set error payload" doc:id="98debb25-7bd0-4841-b3c7-7a0fc8f4155c" >
 									<ee:message >
 										<ee:set-payload ><![CDATA[%dw 2.0
-output application/csv quoteValues = true,header = true
+output application/csv quoteValues = true,header = false
 ---
 {
 	"errortype": error.errortype.identifier default "Validation error",
@@ -107,10 +107,10 @@ output application/csv quoteValues = true,header = true
 }]]></ee:set-payload>
 									</ee:message>
 									<ee:variables >
-										<ee:set-variable variableName="errorFileName" ><![CDATA[ "error_" ++ (now() as String {format: "dd-MM-yyyy-ss"} default "") ++ ".csv"]]></ee:set-variable>
+										<ee:set-variable variableName="errorFileName" ><![CDATA[ "error_" ++ (now() as String {format: "dd-MM-yyyy_ss_SSS"} default "") ++ ".csv"]]></ee:set-variable>
 									</ee:variables>
 								</ee:transform>
-								<file:write doc:name="Write" doc:id="9e86ba51-9620-4a11-81b6-421f64dcc3ef" config-ref="File_Config" path="#[p('file-config.error.writeFilePath') ++ vars.errorFileName]" mode="CREATE_NEW">
+								<file:write doc:name="Write" doc:id="9e86ba51-9620-4a11-81b6-421f64dcc3ef" config-ref="File_Config" path="#[p('file-config.error.writeFilePath') ++ vars.errorFileName]" mode="APPEND">
 									<reconnect frequency="300000" />
 								</file:write>
 			</on-error-propagate>
@@ -156,11 +156,11 @@ output text/plain
 		<flow-ref doc:name="send-email-sub-flow" doc:id="c0de8291-5964-40b0-90b1-fbde7c99139f" name="send-email-sub-flow"/>
 		<flow-ref doc:name="move-file-sub-flow" doc:id="decd77ed-1b6b-47d9-84d7-9959d5532341" name="move-file-sub-flow"/>
 		<error-handler >
-			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="b5121df7-6605-42ad-92dd-b29630b8880f" >
-				<logger level="INFO" doc:name="log error" doc:id="2c89bf11-5077-41cf-b646-697c6773bba8" message='#["Error inside reprocessing flow-" ++ vars.correlationId]'/>
-				<ee:transform doc:name="prepare error payload" doc:id="8765130d-2da0-4b7b-b17b-398c9b11fca0" >
-					<ee:message >
-						<ee:set-payload ><![CDATA[%dw 2.0
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="b5121df7-6605-42ad-92dd-b29630b8880f">
+				<logger level="INFO" doc:name="log error" doc:id="2c89bf11-5077-41cf-b646-697c6773bba8" message='#["Error inside reprocessing flow-" ++ vars.correlationId]' />
+				<ee:transform doc:name="prepare error payload" doc:id="8765130d-2da0-4b7b-b17b-398c9b11fca0">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 {

@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="main-impl-test-suite.xml" />
+	<munit:test name="main-impl-test-suite-default-choice-mail" doc:id="fa19420c-5fa3-477e-85fd-101c163835cb" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when scheduler" doc:id="b0d2d060-3905-4769-8b07-fbb68490d0b4" processor="scheduler">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="runs at 4am everyday" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when list" doc:id="55caa2da-8e54-4ec8-8a6a-6f4ae827c273" processor="file:list">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="List" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when email" doc:id="193b0dd6-9b5c-4f5c-8684-42dcf750157b" processor="email:send">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="email to support team" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="7be21e11-a8fa-4259-8f3b-00643727f6cf" >
+				<munit:variables >
+					<munit:variable key="fileName" value="full_inventory_12-13-23" encoding="UTF-8" mediaType="application/json" />
+				</munit:variables>
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to main-scheduler-flow" doc:id="f05ec4c0-25a1-485b-8252-3c44198cbd5a" name="main-scheduler-flow"/>
+		</munit:execution>
+	</munit:test>
+	<munit:test name="success-test-suiteTest" doc:id="374d2fc8-e6de-444d-8dc8-18be4d851c55">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when scheduler" doc:id="d8ce8b2d-25cb-45db-aa21-8bcd7e0963c7" processor="scheduler">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="runs at 4am everyday" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when List" doc:id="fe4ad2ac-a678-4896-acd2-89c6e2e04348" processor="file:list">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="List" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('fileName.json')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			
+</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when Read" doc:id="199b6c53-6ade-4fbd-a006-c14fcc33fbb0" processor="file:read">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Read" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('full_inventory_success_test.csv')]" mediaType="application/csv" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when write" doc:id="4901c33e-899b-4642-8430-ea511037e162" processor="file:write">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Write" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when move" doc:id="c388974a-939d-415d-9530-0cfa7ef8823f" processor="file:move">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Move" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+		
+</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="main-scheduler-flow" doc:id="ddff9185-ccc9-4f00-874e-4aecec928899" name="main-scheduler-flow"/>
+			<munit-tools:sleep time="60" doc:name="Sleep" doc:id="f0d1d3e1-abb5-4144-a221-6935916f1758" timeUnit="SECONDS"/>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:verify-call doc:name="Verify call" doc:id="e9bacd2b-7dfa-41ef-8f83-f96a0458b905" processor="file:write" atLeast="1">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Write" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+
+<munit:test name="failure-test-suiteTest" doc:id="f5cc8636-2556-4aa5-8b6c-53ad36ab1589">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when scheduler" doc:id="17705a3a-466d-473c-ab35-a3f355c711c4" processor="scheduler">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="runs at 4am everyday" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when List" doc:id="4c33436a-9397-4353-a9c1-77dbfbbdd2c2" processor="file:list">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="List" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('fileName.json')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			
+
+</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when Read" doc:id="a47b45cf-dc02-4655-b900-dc3e18fb18be" processor="file:read">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Read" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('full_inventory_failure_test.csv')]" mediaType="application/csv" encoding="UTF-8" />
+				</munit-tools:then-return>
+			
+</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when move" doc:id="5d7ac657-73d1-4738-94b2-44b4feb724b4" processor="file:move">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Move" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when write" doc:id="25fda0fe-04bb-4703-8845-b7922f99bc63" processor="file:write">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Write" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when write error" doc:id="789d04a7-44ff-40e1-85ef-64cba2870519" processor="file:write">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Write" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+		
+</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="main-scheduler-flow" doc:id="0186d38e-1f7f-4833-a172-09e31cd39f04" name="main-scheduler-flow"/>
+			<munit-tools:sleep time="60" doc:name="Sleep" doc:id="7f087602-104e-4d30-b300-9e955d952302" timeUnit="SECONDS"/>
+		
+</munit:execution>
+	</munit:test>
+	<munit:test name="main-impl-test-suite-error-handler-flow-success" doc:id="95162eda-5d9e-4321-8802-1619a56bfbd0" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when on new or updated file" doc:id="73226704-d4d2-42b0-88ed-48449e75c7a4" processor="file:listener">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="On New or Updated File" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('full_inventory_failure_test.csv')]" mediaType="application/csv" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when email sub flow" doc:id="fa11382a-9ad5-40bb-a3e7-db4d3d768e1d" processor="flow-ref">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="send-email-sub-flow" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when move" doc:id="c62e1b3a-f1ac-4b80-a826-1a5673ce8246" processor="file:move">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Move" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="16e6672e-2823-4124-abad-f909915601b3" >
+				<munit:attributes value='{&#10;"fileName": "full_inventory_12-13-23"&#10;}' encoding="UTF-8" mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to error-handler-flow" doc:id="d6cd9542-e271-4627-a7bf-360cd5ad00c5" name="error-handler-flow"/>
+		</munit:execution>
+	</munit:test>
+
+</mule>
