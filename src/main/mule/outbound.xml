@@ -34,7 +34,7 @@ http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/em
 	</sub-flow>
 	<sub-flow name="move-file-sub-flow" doc:id="68b8bbeb-84e5-4482-ad36-b40001828b7b" >
 		<logger level="INFO" doc:name="before move file" doc:id="c2a22b27-36bd-452a-b50e-80c2176025c4" message='#["Before moving the file"]'/>
-		<file:move doc:name="Move" doc:id="b505d79b-b729-4779-bf9c-28128eca7a6c" config-ref="File_Config" sourcePath="#[p('file-config.error.writeFilePath') ++ &quot;*.csv&quot;]" targetPath="#[p('file-config.archiveFilePath') ++ &quot;error&quot;]" createParentDirectories="false"/>
+		<file:move doc:name="Move" doc:id="b505d79b-b729-4779-bf9c-28128eca7a6c" config-ref="File_Config" sourcePath="#[p('file-config.error.writeFilePath') ++ vars.fileName]" targetPath="#[p('file-config.archiveFilePath') ++ &quot;error&quot;]" createParentDirectories="false"/>
 		<logger level="INFO" doc:name="after move file" doc:id="574fb210-47b1-4ebf-9457-56eedc29022c" message='#["After moving the file"]'/>
 	</sub-flow>
 </mule>

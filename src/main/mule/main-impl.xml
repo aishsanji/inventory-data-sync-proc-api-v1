@@ -15,7 +15,8 @@ http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/cu
 				<cron expression="${schedular.cron}"/>
 			</scheduling-strategy>
 		</scheduler>
-		<logger level="INFO" doc:name="start" doc:id="1d0d90bd-ebac-4c25-945b-163e5c821f91" message='#["Start of the inevntory schedular flow for file pickup"]'/>
+		<set-variable value="#[correlationId]" doc:name="correlationId" doc:id="4e13e21e-1ff5-48a3-ad0b-2a7d389eaae1" variableName="correlationId" />
+		<logger level="INFO" doc:name="start" doc:id="1d0d90bd-ebac-4c25-945b-163e5c821f91" message='#["Start of the inevntory schedular flow for file pickup-" ++ vars.correlationId]'/>
 		<flow-ref doc:name="list-files-sub-flow" doc:id="90c808cf-a1ad-4261-a467-d85c0b9c5f50" name="list-files-sub-flow"/>
 		<choice doc:name="Choice" doc:id="ddd8a4ad-2fbc-4287-8539-9f2d0e2dbb69" >
 			<when expression="#[!(isEmpty(payload))]">
@@ -23,7 +24,7 @@ http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/cu
 				<flow-ref doc:name="batch-job-flow" doc:id="b6699332-a4f0-4916-8b56-c8312b2ffa7f" name="batch-job-flow"/>
 			</when>
 			<otherwise >
-				<logger level="INFO" doc:name="log file not found" doc:id="883fa466-1a4a-4a6f-972b-3f270be1c58a" message="There was no files to read from the location"/>
+				<logger level="INFO" doc:name="log file not found" doc:id="883fa466-1a4a-4a6f-972b-3f270be1c58a" message='#["There was no files to read from the location"]'/>
 				<ee:transform doc:name="prepare email payload" doc:id="503cc272-bc23-4283-bb2a-3151334e6fd5">
 					<ee:message>
 						<ee:set-payload ><![CDATA[%dw 2.0
@@ -43,7 +44,7 @@ status: 404"]]></ee:set-variable>
 				<flow-ref doc:name="send-email-sub-flow" doc:id="0d587091-09ca-4e1a-bdf6-b10bd8460a61" name="send-email-sub-flow"/>
 			</otherwise>
 		</choice>
-		<logger level="INFO" doc:name="end" doc:id="427cad7d-171e-4bf7-bdcd-14ae833ed94c" message='#["End of the inevntory schedular flow for file pickup"]'/>
+		<logger level="INFO" doc:name="end" doc:id="427cad7d-171e-4bf7-bdcd-14ae833ed94c" message='#["End of the inevntory schedular flow for file pickup-" ++ vars.correlationId]'/>
 		<error-handler >
 			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="0adf2563-0be2-4f0f-be1f-733b34be5779" >
 				<ee:transform doc:name="set error payload" doc:id="7dbab928-77b5-4b30-b89b-713709a56fea" >
@@ -62,7 +63,7 @@ output application/json
 		</error-handler>
 	</flow>
 	<flow name="batch-job-flow" doc:id="2d5d91f4-0502-4bc9-a280-2939bfa6dd72" >
-		<logger level="INFO" doc:name="start batch" doc:id="35fb777b-4d00-4721-bf9b-6a8898ba2e9f" message="Start of the batch job flow inside main-impl" />
+		<logger level="INFO" doc:name="start batch" doc:id="35fb777b-4d00-4721-bf9b-6a8898ba2e9f" message='#["Start of the batch job flow inside main-impl"]' />
 		<flow-ref doc:name="read-files-sub-flow" doc:id="c0d4c0c2-4ec2-49b0-9ad6-5277ddd48a7f" name="read-files-sub-flow"/>
 		<ee:transform doc:name="Transform Message" doc:id="fe408025-cc6c-4ef5-b5c8-b278888167f8" >
 			<ee:message >
@@ -78,7 +79,7 @@ payload]]></ee:set-payload>
 			<batch:process-records >
 				<batch:step name="validation-batch-step-1" doc:id="9e0915e5-7378-470e-9ccf-e635671f4042" >
 					<try doc:name="Try" doc:id="a032b7b8-5f43-45fe-a1e5-ef60db108031" >
-						<logger level="INFO" doc:name="before validation" doc:id="626c6d98-3f55-4db9-964d-3ae85bc145b5" message="Before validating the input payload" />
+						<logger level="INFO" doc:name="before validation" doc:id="626c6d98-3f55-4db9-964d-3ae85bc145b5" message='#["Before validating the input payload-" ++ payload.StoreId default ""]' />
 						<validation:is-true doc:name="Is true" doc:id="2d0991f4-8a11-4a5a-aca2-fcbe84a12c28" config-ref="Payload_Validation_Config" expression='#[payload.Quantity != ""]' message='#["Quantity is a mandatory field"]' />
 						<validation:is-number numberType="INTEGER" doc:name="Is number" doc:id="676b7330-6d8d-4f9d-9472-371f2667c976" config-ref="Payload_Validation_Config" value="#[payload.Quantity]" minValue="0" message='#["Value of field Quantity should be a whole number"]' />
 						<validation:matches-regex doc:name="Matches regex" doc:id="c0c1702e-6645-455a-973b-f0b2d869dadc" config-ref="Payload_Validation_Config" value="#[lower(payload.Type)]" regex="\b(backorder|standard)\b" message='#["only standard or backorder is accepted"]' />
@@ -86,17 +87,17 @@ payload]]></ee:set-payload>
 						<validation:is-true doc:name="Is true" doc:id="d486df16-9d67-4f50-a318-77e48ac65cb9" config-ref="Payload_Validation_Config" expression='#[payload.StoreId != ""]' message='#["StoreId is a mandatory field"]'/>
 						<validation:is-true doc:name="Is true" doc:id="2cdd88f9-1441-4a30-b4f0-0621512dcb0f" config-ref="Payload_Validation_Config" expression="#[payload.'Type' != &quot;&quot;]" message='#["Type is mandatory a field"]'/>
 						<validation:is-true doc:name="Is true" doc:id="d2160db3-7d9c-481b-97a0-220951244db4" config-ref="Payload_Validation_Config" expression='#[payload.Timestamp != ""]' message='#["Timestamp is a mandatory field"]'/>
-						<logger level="INFO" doc:name="after validation" doc:id="8f60531e-f0aa-4e39-a5ed-5565d34f4726" message="After validating the input payload" />
+						<logger level="INFO" doc:name="after validation" doc:id="8f60531e-f0aa-4e39-a5ed-5565d34f4726" message='#["After validating the input payload-" ++ payload.StoreId default ""]' />
 						<error-handler >
 							<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="3458817f-73b8-41e8-8439-b787a8927cd3">
 				<logger level="INFO" doc:name="log error" doc:id="861bedd3-526c-431b-986c-20e167e430a3" message='#["Error occured inside batch"]' />
 								<ee:transform doc:name="set error payload" doc:id="98debb25-7bd0-4841-b3c7-7a0fc8f4155c" >
 									<ee:message >
 										<ee:set-payload ><![CDATA[%dw 2.0
-output application/csv quoteValues = true,header = true,separator = "|"
+output application/csv quoteValues = true,header = true
 ---
 {
-	"errortype": error.errortype.identifier,
+	"errortype": error.errortype.identifier default "Validation error",
 	"error": error.description default "",
 	"Type": payload."Type" default "",
 	"StoreId": payload."StoreId" default "",
@@ -118,13 +119,9 @@ output application/csv quoteValues = true,header = true,separator = "|"
 				</batch:step>
 				<batch:step name="write-file-batch-step-2" doc:id="14d0c612-5bd0-4670-a276-0c6d3149cb90" >
 					<logger level="INFO" doc:name="before write file" doc:id="b4847604-4e34-4866-9194-f306d0761165" message='#["Before writing file inside batch"]'/>
-					<set-variable value='#["inventory_" ++ payload.StoreId default "" ++ "_" ++ (now() as DateTime {format: "dd-MM-yyyy_ss"} as String {format: "dd-MM-yyyy_ss"} default "") ++ ".csv"]' doc:name="fileName" doc:id="6faf2252-6c89-4c61-9ab3-4ad6e643493e" variableName="fileName"/>
-					<set-payload value='#[%dw 2.0&#10;output application/csv quoteValues = true,header = true,separator = "|"&#10;---&#10;payload]' doc:name="set csv payload" doc:id="23d3431a-ca8a-4a40-99e6-13d1e982fc22" />
-					<file:write doc:name="Write" doc:id="c69858e3-ba83-40a2-9c4b-d7891fb323e0" config-ref="File_Config" path="#[p('file-config.writeFilePath') ++ vars.fileName]" mode="CREATE_NEW">
-						<file:content><![CDATA[#[%dw 2.0
-output application/csv header=false
----
-payload]]]></file:content>
+					<set-variable value='#["inventory_" ++ payload.StoreId default "" ++ "_" ++ (now() as DateTime {format: "dd-MM-yyyy"} as String {format: "dd-MM-yyyy"} default "") ++ ".csv"]' doc:name="fileName" doc:id="6faf2252-6c89-4c61-9ab3-4ad6e643493e" variableName="fileName"/>
+					<set-payload value="#[%dw 2.0&#10;output application/csv header=false&#10;---&#10;payload]" doc:name="set csv payload" doc:id="a7442e92-cc56-4e34-bcc5-a9e677ebef95" />
+					<file:write doc:name="Write" doc:id="c69858e3-ba83-40a2-9c4b-d7891fb323e0" config-ref="File_Config" path="#[p('file-config.writeFilePath') ++ vars.fileName]" mode="APPEND">
 					</file:write>
 					<logger level="INFO" doc:name="after file write" doc:id="f24c5094-2bce-4783-8078-487cbefeb638" message='#["After writing file inside batch"]'/>
 				</batch:step>
@@ -136,13 +133,15 @@ payload]]]></file:content>
 		</batch:job>
 	</flow>
 	<flow name="error-handler-flow" doc:id="c5c9bf3e-5a47-40d0-82a1-86e7e1b755ba" >
-		<file:listener doc:name="On New or Updated File" doc:id="f3c54d7f-0e05-4585-9712-b584181d4be9" config-ref="File_Config" moveToDirectory="#[p('file-config.archiveFilePath') ++ &quot;error&quot;]" renameTo='#["error_" ++ now() as String {format: "dd-MM-yyyy-ss"} ++ ".csv"]' directory='${file-config.error.writeFilePath}'>
+		<file:listener doc:name="On New or Updated File" doc:id="f3c54d7f-0e05-4585-9712-b584181d4be9" config-ref="File_Config" moveToDirectory="#[p('file-config.archiveFilePath') ++ &quot;error&quot;]" renameTo='#["error_" ++ now() as String {format: "dd-MM-yyyy-ss"} ++ ".csv"]' directory='${file-config.error.writeFilePath}' watermarkMode="CREATED_TIMESTAMP">
 			<scheduling-strategy >
-				<fixed-frequency frequency="30" timeUnit="SECONDS"/>
+				<fixed-frequency timeUnit="SECONDS" frequency="30"/>
 			</scheduling-strategy>
 			<file:matcher filenamePattern="*.csv" />
 		</file:listener>
-		<logger level="INFO" doc:name="start reprocess flow" doc:id="922f35a2-d365-4251-a056-724e35ddc008" message="Start of error reprocess flow"/>
+		<set-variable value="#[correlationId]" doc:name="correlationId" doc:id="816134e4-fee0-44d4-9b29-f48588c0ad52" variableName="correlationId"/>
+		<set-variable value='#[attributes.fileName default ""]' doc:name="fileName" doc:id="dfc6cc87-322f-4acd-8a52-f3876306b9fb" variableName="fileName"/>
+		<logger level="INFO" doc:name="start reprocess flow" doc:id="922f35a2-d365-4251-a056-724e35ddc008" message='#["Start of error handler flow-" ++ vars.correlationId]'/>
 		<ee:transform doc:name="prepare email payload" doc:id="06e76b2d-efff-45f3-a1c3-fe21ce41d701" >
 			<ee:message >
 			</ee:message>
@@ -158,7 +157,7 @@ output text/plain
 		<flow-ref doc:name="move-file-sub-flow" doc:id="decd77ed-1b6b-47d9-84d7-9959d5532341" name="move-file-sub-flow"/>
 		<error-handler >
 			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="b5121df7-6605-42ad-92dd-b29630b8880f" >
-				<logger level="INFO" doc:name="log error" doc:id="2c89bf11-5077-41cf-b646-697c6773bba8" message='#["Error inside reprocessing flow"]'/>
+				<logger level="INFO" doc:name="log error" doc:id="2c89bf11-5077-41cf-b646-697c6773bba8" message='#["Error inside reprocessing flow-" ++ vars.correlationId]'/>
 				<ee:transform doc:name="prepare error payload" doc:id="8765130d-2da0-4b7b-b17b-398c9b11fca0" >
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
