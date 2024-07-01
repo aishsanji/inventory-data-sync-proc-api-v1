@@ -65,7 +65,7 @@ output application/json
 	<flow name="batch-job-flow" doc:id="2d5d91f4-0502-4bc9-a280-2939bfa6dd72" >
 		<logger level="INFO" doc:name="start batch" doc:id="35fb777b-4d00-4721-bf9b-6a8898ba2e9f" message='#["Start of the batch job flow inside main-impl"]' />
 		<flow-ref doc:name="read-files-sub-flow" doc:id="c0d4c0c2-4ec2-49b0-9ad6-5277ddd48a7f" name="read-files-sub-flow"/>
-		<ee:transform doc:name="Transform Message" doc:id="fe408025-cc6c-4ef5-b5c8-b278888167f8" >
+		<ee:transform doc:name="prepare streaming payload" doc:id="fe408025-cc6c-4ef5-b5c8-b278888167f8" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 @StreamCapable()
@@ -75,7 +75,7 @@ output application/json deferred=true
 payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<batch:job jobName="batch_Job" doc:id="849d76bd-5038-411d-b83d-8e6b682998b1" maxFailedRecords="-1" blockSize="10">
+		<batch:job jobName="batch_Job" doc:id="849d76bd-5038-411d-b83d-8e6b682998b1" maxFailedRecords="-1" blockSize="5">
 			<batch:process-records >
 				<batch:step name="validation-batch-step-1" doc:id="9e0915e5-7378-470e-9ccf-e635671f4042" >
 					<try doc:name="Try" doc:id="a032b7b8-5f43-45fe-a1e5-ef60db108031" >
@@ -128,20 +128,19 @@ output application/csv quoteValues = true,header = false
 			</batch:process-records>
 			<batch:on-complete >
 				<file:move doc:name="Move" doc:id="25144ffd-0756-4507-ba8f-aaef4e01fda3" config-ref="File_Config" sourcePath="#[p('file-config.readFilePath') ++ vars.originalFileName]" targetPath="#[p('file-config.archiveFilePath') ++ &quot;success&quot;]" renameTo='#["archive_" ++ now() as String {format: "dd-MM-yyyy"} ++ "-" ++ vars.originalFileName ++ ".csv"]' createParentDirectories="false"/>
-				<logger level="INFO" doc:name="on complete log" doc:id="55f6d233-ccde-47d7-8f27-b96d9ee8dee0" message="#[payload as Object]"/>
+				<logger level="INFO" doc:name="on complete log" doc:id="55f6d233-ccde-47d7-8f27-b96d9ee8dee0" message='#["On complete step inside batch"]'/>
 			</batch:on-complete>
 		</batch:job>
 	</flow>
 	<flow name="error-handler-flow" doc:id="c5c9bf3e-5a47-40d0-82a1-86e7e1b755ba" >
-		<file:listener doc:name="On New or Updated File" doc:id="f3c54d7f-0e05-4585-9712-b584181d4be9" config-ref="File_Config" moveToDirectory="#[p('file-config.archiveFilePath') ++ &quot;error&quot;]" renameTo='#["error_" ++ now() as String {format: "dd-MM-yyyy-ss"} ++ ".csv"]' directory='${file-config.error.writeFilePath}' watermarkMode="CREATED_TIMESTAMP">
-			<scheduling-strategy >
-				<fixed-frequency frequency="6" timeUnit="MINUTES" />
-			</scheduling-strategy>
-			<file:matcher filenamePattern="*.csv" />
-		</file:listener>
-		<set-variable value="#[correlationId]" doc:name="correlationId" doc:id="816134e4-fee0-44d4-9b29-f48588c0ad52" variableName="correlationId"/>
-		<set-variable value='#[attributes.fileName default ""]' doc:name="fileName" doc:id="dfc6cc87-322f-4acd-8a52-f3876306b9fb" variableName="fileName"/>
-		<logger level="INFO" doc:name="start reprocess flow" doc:id="922f35a2-d365-4251-a056-724e35ddc008" message='#["Start of error handler flow-" ++ vars.correlationId]'/>
+	<file:listener doc:name="On New or Updated File" doc:id="3eb135e6-14ea-4931-9391-b94634c8b7e4" config-ref="File_Config" moveToDirectory="#[p('file-config.archiveFilePath') ++ &quot;error&quot;]" renameTo='#["error_" ++ now() as String {format: "dd-MM-yyyy-ss"} ++ ".csv"]' directory='${file-config.error.writeFilePath}' watermarkMode="CREATED_TIMESTAMP">
+		<scheduling-strategy >
+  		<fixed-frequency frequency="6" timeUnit="MINUTES" />
+		</scheduling-strategy>
+		<file:matcher filenamePattern="*.csv" />
+	</file:listener>
+		<set-variable value="#[correlationId]" doc:name="correlationId" doc:id="816134e4-fee0-44d4-9b29-f48588c0ad52" variableName="correlationId" />
+		<set-variable value='#[attributes.fileName default ""]' doc:name="fileName" doc:id="4f87a785-47cd-4087-a236-6b009fcf2b15" variableName="fileName"/>		<logger level="INFO" doc:name="start reprocess flow" doc:id="922f35a2-d365-4251-a056-724e35ddc008" message='#["Start of error handler flow-" ++ vars.correlationId]'/>
 		<ee:transform doc:name="prepare email payload" doc:id="06e76b2d-efff-45f3-a1c3-fe21ce41d701" >
 			<ee:message >
 			</ee:message>

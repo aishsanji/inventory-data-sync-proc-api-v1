@@ -21,5 +21,5 @@ http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/sc
 	<global-property doc:name="Global Property" doc:id="f81448b7-f867-4170-a2cb-28ff8f6d2831" name="mule.env" value="dev" />
 	<configuration-properties doc:name="Configuration properties" doc:id="904daf0d-5147-4661-a4f4-62841fded885" file="${mule.env}-config.yaml" />
 	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="ab48a1dc-427c-42a8-beec-2ae49449fad7" file="secure-${mule.env}-config.yaml" key="${secure.key}" />
-	<global-property doc:name="Global Property" doc:id="07ea5d7c-e1fe-4831-97cc-e7812450ce93" name="secure.key" value="Mulesoft@123!Ban" />
+	<global-property doc:name="Global Property" doc:id="07ea5d7c-e1fe-4831-97cc-e7812450ce93" name="secure.key" value="${secure.key}" />
 </mule>
