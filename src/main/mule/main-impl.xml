@@ -107,7 +107,7 @@ output application/csv quoteValues = true,header = false
 }]]></ee:set-payload>
 									</ee:message>
 									<ee:variables >
-										<ee:set-variable variableName="errorFileName" ><![CDATA[ "error_" ++ (now() as String {format: "dd-MM-yyyy_ss_SSS"} default "") ++ ".csv"]]></ee:set-variable>
+										<ee:set-variable variableName="errorFileName" ><![CDATA["error_" ++ payload.StoreId default "NoStoreId" ++ "_" ++ (now() as DateTime {format: "dd-MM-yyyy"} as String {format: "dd-MM-yyyy"} default "") ++ ".csv"]]></ee:set-variable>
 									</ee:variables>
 								</ee:transform>
 								<file:write doc:name="Write" doc:id="9e86ba51-9620-4a11-81b6-421f64dcc3ef" config-ref="File_Config" path="#[p('file-config.error.writeFilePath') ++ vars.errorFileName]" mode="APPEND">
@@ -127,7 +127,7 @@ output application/csv quoteValues = true,header = false
 				</batch:step>
 			</batch:process-records>
 			<batch:on-complete >
-				<file:move doc:name="Move" doc:id="25144ffd-0756-4507-ba8f-aaef4e01fda3" config-ref="File_Config" sourcePath="#[p('file-config.readFilePath') ++ vars.originalFileName]" targetPath="#[p('file-config.archiveFilePath') ++ &quot;success&quot;]" renameTo='#["success_" ++ now() as String {format: "dd-MM-yyyy-ss"} ++ ".csv"]' createParentDirectories="false"/>
+				<file:move doc:name="Move" doc:id="25144ffd-0756-4507-ba8f-aaef4e01fda3" config-ref="File_Config" sourcePath="#[p('file-config.readFilePath') ++ vars.originalFileName]" targetPath="#[p('file-config.archiveFilePath') ++ &quot;success&quot;]" renameTo='#["archive_" ++ now() as String {format: "dd-MM-yyyy"} ++ "-" ++ vars.originalFileName ++ ".csv"]' createParentDirectories="false"/>
 				<logger level="INFO" doc:name="on complete log" doc:id="55f6d233-ccde-47d7-8f27-b96d9ee8dee0" message="#[payload as Object]"/>
 			</batch:on-complete>
 		</batch:job>
@@ -135,7 +135,7 @@ output application/csv quoteValues = true,header = false
 	<flow name="error-handler-flow" doc:id="c5c9bf3e-5a47-40d0-82a1-86e7e1b755ba" >
 		<file:listener doc:name="On New or Updated File" doc:id="f3c54d7f-0e05-4585-9712-b584181d4be9" config-ref="File_Config" moveToDirectory="#[p('file-config.archiveFilePath') ++ &quot;error&quot;]" renameTo='#["error_" ++ now() as String {format: "dd-MM-yyyy-ss"} ++ ".csv"]' directory='${file-config.error.writeFilePath}' watermarkMode="CREATED_TIMESTAMP">
 			<scheduling-strategy >
-				<fixed-frequency timeUnit="SECONDS" frequency="30"/>
+				<fixed-frequency frequency="6" timeUnit="MINUTES" />
 			</scheduling-strategy>
 			<file:matcher filenamePattern="*.csv" />
 		</file:listener>
